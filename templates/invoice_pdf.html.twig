@@ -15,26 +15,105 @@
             margin: 0;
         }
 
-        .chrom {
-            height: 100vh;
+        h1 {
+            margin: 0;
+        }
+
+        .page {
+            background-color: gainsboro;
+            width: 210mm;
+            height: 297mm;
+            padding: 20mm;
+        }
+
+        .header {
+
+        }
+
+        .row {
             display: flex;
-            flex-flow: column nowrap;
+        }
+
+        .justify-end {
+            justify-content: flex-end;
+        }
+
+        .justify-between {
             justify-content: space-between;
         }
 
-        .pls {
-            background-color: red;
-            width: 100%;
-            height: 200px;
+        .align-end {
+            align-items: flex-end;
         }
+
 
     </style>
 </head>
 <body>
     <div class="page">
-        <div class="chrom">
-            <div class="pls"></div>
-            <div class="pls"></div>
+        <div class="header">
+            {# fill from db later #}
+            <div>
+                <h1>Veehandel J. de Haas</h1>
+                <strong>Overleek 1C</strong><br>
+                <strong>1141 PD MONNICKENDAM</strong><br>
+                <br>
+                <strong>Telefoon: 06-26394315</strong><br>
+                <br>
+                <strong>IBAN NL19 RABO 0342829432</strong><br>
+                <strong>BIC RABONL2U</strong><br>
+                <strong>K.v.k. 36035329</strong><br>
+                <strong>Email: jaapdehaasveehandel@gmail.com</strong><br>
+                <strong>BTW nr: 1918.10.083.B.01</strong><br>
+            </div>
+            <div class="row justify-between">
+                <p>
+                    <strong>INKOOPNOTA VEE</strong><br>
+                    Uigereikt door afnemer.
+                </p>
+                <p>
+                    {{ invoice.getCustomer.getCompanyName() }}<br>
+                    {{ invoice.getCustomer.getStreet() }} {{ invoice.getCustomer.getHouseNumber() }}<br>
+                    {{ invoice.getCustomer.getPostalCode() }}<br>
+                </p>
+            </div>
+            <div class="row">
+                <p style="width: 250px;">
+                    Nota: <br>
+                    Nota datum: <br>
+                    BTW-nummer leverancier: <br>
+                </p>
+                <p>
+                    {{ invoice.getInvoiceNumber() }}<br>
+                    {{ "temp 01-01-2001" }}<br>
+                    {{ invoice.GetCustomer().getBtwNumber() }}<br>
+                </p>
+            </div>
+            <div class="row align-end">
+                <p style="width: 250px;">Leverdatum:</p>
+                <p style="margin-right: 100px;">{{ invoice.getDeliveryDate().format("d-m-Y") }}</p>
+            </div>
+        </div>
+        <div class="invoice-rows">
+            {% for invoiceRow in invoice.getInvoiceRows() %}
+                conjo<br>
+            {% endfor %}
+        </div>
+        <div class="footer">
+            <div class="row">
+                <div class="prices-lables">
+                    <p>
+                        Totaal excl.BTW<br>
+                        BTW 9%<br>
+                    </p>
+                </div>
+                <div>
+                    <p>
+                        € 596,33
+                        € 53,67
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 </body>

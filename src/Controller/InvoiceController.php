@@ -17,7 +17,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 
 use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
-use Dompdf\Dompdf;
+use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
  * @Route("/invoices")
@@ -154,23 +154,42 @@ class InvoiceController extends AbstractController
     }
 
     /**
-     * @Route("/pdf/{id}", name="invoice_delete", methods={"GET"})
+     * @Route("/pdf/{id}", name="invoice_pdf", methods={"GET"})
      */
-    public function pdf(Invoice $invoice): Response
+    public function pdf(Invoice $invoice, KernelInterface $kernel): Response
     {
-        // instantiate and use the dompdf class
+        $projectDir = $kernel->getProjectDir();
+        $tempPdfDir = $projectDir."/var/temp/pdf";
 
-        return $this->render("invoice_pdf.html.twig", compact("invoice"));
+        // return $this->render("invoice_pdf.html.twig", compact("invoice"));
 
-        $html = $this->render("invoice_pdf.html.twig", compact("invoice"))->getContent();
+        $html = $this->renderView("invoice_pdf.html.twig", compact("invoice"));
 
-        $dompdf = new Dompdf();       
-        $dompdf->set_option('isHtml5ParserEnabled', true);
-        $dompdf->setPaper('A4', 'portrait');
-        $dompdf->loadHtml($html);
-        $dompdf->render();
+        $encodedHtml = base64_encode($html);
+        $desiredFilename = $invoice->getInvoiceNumber().".pdf";
 
-        $response = new Response($dompdf->output());
+        $output;
+        $result;
+
+        exec("node $projectDir/scripts/generate_pdf.js $encodedHtml $desiredFilename", $output, $result);
+        // dd($output, $result);
+
+        // 0 as exit code means the program ran without any errors
+        if ($result !== 0) {
+            $response = new Response(
+                json_encode(["status" => "error", "message" => "an error occured when generating the pdf"]),
+                500,
+                ['Content-Type' => 'application/json']
+            );
+            return $response;
+        }
+
+        $filename = $output[0];
+        $filePath = $tempPdfDir."/".$filename;
+        $pdfContent = \file_get_contents($tempPdfDir."/".$filename);
+        // Delete the temporary pdf file
+
+        $response = new Response($pdfContent);
         $disposition = HeaderUtils::makeDisposition(
             HeaderUtils::DISPOSITION_INLINE,
             $invoice->getInvoiceNumber().".pdf"
