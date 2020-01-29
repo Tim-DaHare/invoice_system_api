@@ -34,7 +34,7 @@ class Customer
     private $house_number;
 
     /**
-     * @ORM\Column(type="string", length=6)
+     * @ORM\Column(type="string", length=255)
      */
     private $postal_code;
 
@@ -52,6 +52,11 @@ class Customer
      * @ORM\OneToMany(targetEntity="App\Entity\Invoice", mappedBy="customer")
      */
     private $invoices;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $email;
 
     public function __construct()
     {
@@ -162,6 +167,18 @@ class Customer
                 $invoice->setCustomer(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(string $email): self
+    {
+        $this->email = $email;
 
         return $this;
     }

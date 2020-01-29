@@ -72,7 +72,7 @@ class InvoiceRow
         return $this->description;
     }
 
-    public function setDescription(string $description): self
+    public function setDescription(?string $description): self
     {
         $this->description = $description;
 
@@ -84,7 +84,7 @@ class InvoiceRow
         return $this->amount;
     }
 
-    public function setAmount(int $amount): self
+    public function setAmount(?int $amount): self
     {
         $this->amount = $amount;
 
@@ -96,7 +96,7 @@ class InvoiceRow
         return $this->work_number;
     }
 
-    public function setWorkNumber(string $work_number): self
+    public function setWorkNumber(?string $work_number): self
     {
         $this->work_number = $work_number;
 

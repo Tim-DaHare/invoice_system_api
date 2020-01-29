@@ -12,6 +12,14 @@ use Symfony\Component\Serializer\Annotation\MaxDepth;
  */
 class Invoice
 {
+    public function __construct()
+    {
+        $this->created_at = new \DateTime("now");
+
+        $this->invoiceRows = new ArrayCollection();
+        $this->invoice_rows = new ArrayCollection();
+    }
+    
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -62,11 +70,10 @@ class Invoice
      */
     private $flavour;
 
-    public function __construct()
-    {
-        $this->invoiceRows = new ArrayCollection();
-        $this->invoice_rows = new ArrayCollection();
-    }
+    /**
+     * @ORM\Column(type="datetime")
+     */
+    private $created_at;
 
     public function getId(): ?int
     {
@@ -184,6 +191,42 @@ class Invoice
     public function setFlavour(int $flavour): self
     {
         $this->flavour = $flavour;
+
+        return $this;
+    }
+
+    public function getBtwPrice(): ?string
+    {
+        $totalPrice = (float)$this->getTotalPrice();
+        $btwPrice = $totalPrice / (100 + $this->getBtwPercentage()) * $this->getBtwPercentage();
+        return $btwPrice;
+    }
+
+    public function getTotalPriceExclBtw(): ?string
+    {
+        $totalPrice = (float)$this->getTotalPrice();
+        $btwPrice = (float)$this->getBtwPrice();
+        $totalPrice = $totalPrice - $btwPrice;
+        return $totalPrice;
+    }
+
+    public function getTotalPrice(): ?string
+    {
+        $totalPrice = 0;
+        foreach($this->getInvoiceRows() as $invoiceRow) {
+            $totalPrice += $invoiceRow->getPrice();
+        }
+        return $totalPrice;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->created_at;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $created_at): self
+    {
+        $this->created_at = $created_at;
 
         return $this;
     }
