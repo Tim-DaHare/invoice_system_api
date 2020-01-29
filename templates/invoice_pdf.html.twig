@@ -15,12 +15,36 @@
             margin: 0;
         }
 
-        h1 {
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 5px 10px;
+        }
+
+        th:first-child, td:first-child {
+            padding-left: 0;
+        }
+
+        th:last-child, td:last-child {
+            padding-right: 0;
+        }
+
+        th {
+            border-bottom: 2px solid black;
+        }
+
+        h1, p {
             margin: 0;
         }
 
         .page {
-            background-color: gainsboro;
+            position: relative;
+            display: flex;
+            flex-flow: column nowrap;
             width: 210mm;
             height: 297mm;
             padding: 20mm;
@@ -32,6 +56,12 @@
 
         .row {
             display: flex;
+            margin-bottom: 20px;
+        }
+
+        .col {
+            display: flex;
+            flex-direction: column;
         }
 
         .justify-end {
@@ -46,12 +76,40 @@
             align-items: flex-end;
         }
 
+        .align-stretch {
+            align-items: stretch;
+        }
+
+        .footer {
+            margin-top: auto;
+        }
+
+        .total-price {
+            display: inline-block;
+            width: 100px;
+            border-top: 2px solid black;
+            border-bottom: 4px solid black;
+            text-align: right;
+            padding-top: 20px;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-left {
+            text-align: left;
+        }
+
+        .text-right {
+            text-align: right;
+        }
 
     </style>
 </head>
 <body>
     <div class="page">
-        <div class="header">
+        <div class="row justify-between align-stretch">
             {# fill from db later #}
             <div>
                 <h1>Veehandel J. de Haas</h1>
@@ -66,7 +124,7 @@
                 <strong>Email: jaapdehaasveehandel@gmail.com</strong><br>
                 <strong>BTW nr: 1918.10.083.B.01</strong><br>
             </div>
-            <div class="row justify-between">
+            <div class="col justify-between">
                 <p>
                     <strong>INKOOPNOTA VEE</strong><br>
                     Uigereikt door afnemer.
@@ -77,6 +135,7 @@
                     {{ invoice.getCustomer.getPostalCode() }}<br>
                 </p>
             </div>
+        </div>
             <div class="row">
                 <p style="width: 250px;">
                     Nota: <br>
@@ -85,7 +144,7 @@
                 </p>
                 <p>
                     {{ invoice.getInvoiceNumber() }}<br>
-                    {{ "temp 01-01-2001" }}<br>
+                    {{ invoice.getCreatedAt().format("d-m-Y") }}<br>
                     {{ invoice.GetCustomer().getBtwNumber() }}<br>
                 </p>
             </div>
@@ -93,26 +152,106 @@
                 <p style="width: 250px;">Leverdatum:</p>
                 <p style="margin-right: 100px;">{{ invoice.getDeliveryDate().format("d-m-Y") }}</p>
             </div>
-        </div>
         <div class="invoice-rows">
-            {% for invoiceRow in invoice.getInvoiceRows() %}
-                conjo<br>
-            {% endfor %}
+            <table className="invoice-rows-builder__table">
+                <thead>
+                    <tr>
+                        {% if (invoice.getFlavour() != 1) %}
+                        <th>
+                            Omschrijving
+                        </th>
+                        {% endif %}
+                        {% if (invoice.getFlavour() == 1) %}
+                            <th>
+                                I & R Oormerk
+                            </th>
+                            <th class="text-center">
+                                Gewicht in kg 
+                            </th>
+                            <th class="text-right">
+                                Prijs per kg.
+                            </th>
+                            <th class="text-right">
+                                Kosten
+                            </th>
+                        {% endif %}
+                        {% if (invoice.getFlavour() == 0 or invoice.getFlavour() == 2) %}
+                        <th>
+                            Aantal
+                        </th>
+                        {% endif %}
+                    
+                        {% if(invoice.getFlavour() == 0) %}
+                        <th>
+                            Werknummer
+                        </th>
+                        {% endif %}
+                        <th class="text-right">
+                            Bedrag
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoiceRow in invoice.getInvoiceRows() %}
+                        <tr className="invoice-listitem--table-row" key={i}>
+                            {% if (invoice.getFlavour() != 1) %}
+                                <td>
+                                    {{ invoiceRow.getDescription() }}
+                                </td>
+                            {% endif %}
+                            {% if (invoice.getFlavour() == 1) %}
+                                <td>
+                                    {{ invoiceRow.getEarbrand() }}
+                                </td>
+                                <td class="text-center">
+                                    {{ invoiceRow.getWeightKg()|number_format(2, ",", ".") }}
+                                </td>
+                                <td class="text-right">
+                                    &euro; {{ invoiceRow.getPriceKg()|number_format(2, ",", ".") }}
+                                </td>
+                                <td class="text-right">
+                                    &euro; {{ invoiceRow.getCosts()|number_format(2, ",", ".") }}
+                                </td>
+                            {% endif %}
+                            {% if (invoice.getFlavour() == 0 or invoice.getFlavour() == 2) %}
+                                <td>
+                                    {{ invoiceRow.getAmount() }}
+                                </td>
+                            {% endif %}
+                            {% if (invoice.getFlavour() == 0) %}
+                                <td>
+                                    {{ invoiceRow.getWorkNumber() }}
+                                </td>
+                            {% endif %}
+                            <td class="text-right">
+                                &euro; {{ invoiceRow.getPrice()|number_format(2, ",", ".") }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
         <div class="footer">
             <div class="row">
-                <div class="prices-lables">
-                    <p>
-                        Totaal excl.BTW<br>
-                        BTW 9%<br>
-                    </p>
-                </div>
-                <div>
-                    <p>
-                        € 596,33
-                        € 53,67
-                    </p>
-                </div>
+                <p style="margin-right: 100px;">
+                    Totaal excl.BTW<br>
+                    BTW {{ invoice.getBtwPercentage() }}%<br>
+                    <br>
+                    {% if (invoice.getUbnNumber() is not null) %} Slachthuis UBN: {{ invoice.getUbnNumber() }} {% endif %}
+                </p>
+                <p>
+                    € {{ invoice.getTotalPriceExclBtw()|number_format(2, ",", ".") }}<br>
+                    € {{ invoice.getBtwPrice()|number_format(2, ",", ".") }}<br>
+                </p>
+            </div>
+            <div class="row justify-between align-end">
+                <p>Per bank betaald</p>
+                <p>
+                    Totaal Incl.BTW
+                    <span class="total-price">
+                        &euro; {{ invoice.getTotalPrice()|number_format(2, ",", ".") }}
+                    </span>
+                </p>
             </div>
         </div>
     </div>

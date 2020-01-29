@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer');
+const zlib = require('zlib');
 
 const main = async () => {
     const content = process.argv[2];
@@ -7,7 +8,10 @@ const main = async () => {
     if (!content || !desiredFilename) {
         process.exit(1);
     }
-    const html = new Buffer.from(content, 'base64').toString();
+
+    const base64buffer = new Buffer.from(content, 'base64');
+    
+    const html = zlib.inflateRawSync(base64buffer).toString();
 
     const browser = await puppeteer.launch();
     const page = await browser.newPage();

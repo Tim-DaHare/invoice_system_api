@@ -95,7 +95,7 @@ class InvoiceController extends AbstractController
 
         foreach($body["invoice_rows"] as $row) {
             $invoiceRow = new InvoiceRow;
-            $invoiceRow->setDescription($row["description"]);
+            $invoiceRow->setDescription($row["description"] ?? null);
             $invoiceRow->setAmount($row["amount"] ?? null);
             $invoiceRow->setWorkNumber($row["work_number"] ?? null);
             $invoiceRow->setPrice($row["price"]);
@@ -161,18 +161,16 @@ class InvoiceController extends AbstractController
         $projectDir = $kernel->getProjectDir();
         $tempPdfDir = $projectDir."/var/temp/pdf";
 
-        // return $this->render("invoice_pdf.html.twig", compact("invoice"));
-
         $html = $this->renderView("invoice_pdf.html.twig", compact("invoice"));
 
-        $encodedHtml = base64_encode($html);
+        $compressedHtml = gzdeflate($html, 9);
+        $encodedHtml = base64_encode($compressedHtml);
         $desiredFilename = $invoice->getInvoiceNumber().".pdf";
 
         $output;
         $result;
 
         exec("node $projectDir/scripts/generate_pdf.js $encodedHtml $desiredFilename", $output, $result);
-        // dd($output, $result);
 
         // 0 as exit code means the program ran without any errors
         if ($result !== 0) {
@@ -187,7 +185,7 @@ class InvoiceController extends AbstractController
         $filename = $output[0];
         $filePath = $tempPdfDir."/".$filename;
         $pdfContent = \file_get_contents($tempPdfDir."/".$filename);
-        // Delete the temporary pdf file
+        // Todo: Delete the temporary pdf file
 
         $response = new Response($pdfContent);
         $disposition = HeaderUtils::makeDisposition(
