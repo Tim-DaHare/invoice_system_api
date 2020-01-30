@@ -6,7 +6,7 @@ use App\Entity\Invoice;
 use App\Entity\InvoiceRow;
 use App\Entity\Customer;
 use App\Form\InvoiceType;
-use App\Repository\InvoiceRepository;
+use App\Repository\CustomerRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,58 +15,38 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 
-use Symfony\Component\HttpFoundation\HeaderUtils;
-use Symfony\Component\HttpFoundation\ResponseHeaderBag;
-use Symfony\Component\HttpKernel\KernelInterface;
-
 /**
- * @Route("/invoices")
+ * @Route("/customers")
  */
-class InvoiceController extends AbstractController
+class CustomerController extends AbstractController
 {
     /**
-     * @Route("/", name="invoice_index", methods={"GET"})
+     * @Route("/", name="customer_index", methods={"GET"})
      */
-    public function index(InvoiceRepository $invoiceRepository, SerializerInterface $serializer): Response
+    public function index(CustomerRepository $customerRepository, SerializerInterface $serializer): Response
     {
-        $invoices = $invoiceRepository->findBy([], ["id" => "DESC"]);
+        $customers = $customerRepository->findAll();
 
         // Fix circular reference
         // $jsonData = $serializer->serialize($invoices, 'json', [AbstractObjectNormalizer::ENABLE_MAX_DEPTH => true]);
 
-        $invoicesArray = [];
+        $customersArray = [];
 
-        foreach($invoices as $invoice) {
-            $invoiceArray = [];
-            $invoiceArray["id"] = $invoice->getId();
-            $invoiceArray["invoice_number"] = $invoice->getInvoiceNumber();
-            $invoiceArray["invoice_type"] = $invoice->getInvoiceType();
-            $invoiceArray["delivery_date"] = $invoice->getDeliveryDate();
-            $invoiceArray["btw_percentage"] = $invoice->getBtwPercentage();
-            $invoiceArray["ubn_number"] = $invoice->getUbnNumber();
-            $invoiceArray["customer_id"] = $invoice->getCustomer()->getId();
-            $invoiceArray["invoice_flavour"] = $invoice->getFlavour();
-            $invoiceArray["invoice_rows"] = [];
+        foreach($customers as $customer) {
+            $customerArray = [];
+            $customerArray["id"] = $customer->getId();
+            $customerArray["company_name"] = $customer->getCompanyName();
+            $customerArray["street"] = $customer->getStreet();
+            $customerArray["house_number"] = $customer->getHouseNumber();
+            $customerArray["postal_code"] = $customer->getPostalCode();
+            $customerArray["city"] = $customer->getCity();
+            $customerArray["btw_number"] = $customer->getBtwNumber();
+            $customerArray["email"] = $customer->getEmail();
 
-            foreach($invoice->getInvoiceRows() as $invoiceRow) {
-                $invoiceRowArray = [];
-                $invoiceRowArray["id"] = $invoiceRow->getId();
-                $invoiceRowArray["description"] = $invoiceRow->getDescription();
-                $invoiceRowArray["amount"] = $invoiceRow->getAmount();
-                $invoiceRowArray["work_number"] = $invoiceRow->getAmount();
-                $invoiceRowArray["price"] = $invoiceRow->getPrice();
-                $invoiceRowArray["earbrand"] = $invoiceRow->getEarbrand();
-                $invoiceRowArray["weight_kg"] = $invoiceRow->getWeightKg();
-                $invoiceRowArray["price_kg"] = $invoiceRow->getPriceKg();
-                $invoiceRowArray["costs"] = $invoiceRow->getCosts();
-
-                $invoiceArray["invoice_rows"][] = $invoiceRowArray;
-            }
-
-            $invoicesArray[] = $invoiceArray;
+            $customersArray[] = $customerArray;
         }
 
-        return $this->json($invoicesArray);
+        return $this->json($customersArray);
     }
 
     /**
@@ -151,51 +131,5 @@ class InvoiceController extends AbstractController
         // }
 
         // return $this->redirectToRoute('invoice_index');
-    }
-
-    /**
-     * @Route("/pdf/{id}", name="invoice_pdf", methods={"GET"})
-     */
-    public function pdf(Invoice $invoice, KernelInterface $kernel): Response
-    {
-        $projectDir = $kernel->getProjectDir();
-        $tempPdfDir = $projectDir."/var/temp/pdf";
-
-        $html = $this->renderView("invoice_pdf.html.twig", compact("invoice"));
-
-        $compressedHtml = gzdeflate($html, 9);
-        $encodedHtml = base64_encode($compressedHtml);
-        $desiredFilename = $invoice->getInvoiceNumber().".pdf";
-
-        $output;
-        $result;
-
-        exec("node $projectDir/scripts/generate_pdf.js $encodedHtml $desiredFilename", $output, $result);
-
-        // 0 as exit code means the program ran without any errors
-        if ($result !== 0) {
-            $response = new Response(
-                json_encode(["status" => "error", "message" => "an error occured when generating the pdf"]),
-                500,
-                ['Content-Type' => 'application/json']
-            );
-            return $response;
-        }
-
-        $filename = $output[0];
-        $filePath = $tempPdfDir."/".$filename;
-        $pdfContent = \file_get_contents($tempPdfDir."/".$filename);
-        // Todo: Delete the temporary pdf file
-
-        $response = new Response($pdfContent);
-        $disposition = HeaderUtils::makeDisposition(
-            HeaderUtils::DISPOSITION_INLINE,
-            $invoice->getInvoiceNumber().".pdf"
-        );
-
-        $response->headers->set('Content-Disposition', $disposition);
-        $response->headers->set('Content-Type', "application/pdf");
-
-        return $response;
     }
 }

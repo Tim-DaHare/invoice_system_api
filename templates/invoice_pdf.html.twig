@@ -86,10 +86,11 @@
 
         .total-price {
             display: inline-block;
-            width: 100px;
+            width: 120px;
             border-top: 2px solid black;
-            border-bottom: 4px solid black;
+            border-bottom: 5px double black;
             text-align: right;
+            padding: 0 10px;
             padding-top: 20px;
         }
 
@@ -126,13 +127,18 @@
             </div>
             <div class="col justify-between">
                 <p>
-                    <strong>INKOOPNOTA VEE</strong><br>
-                    Uigereikt door afnemer.
+                    {% if (invoice.getInvoiceType() == 0) %}
+                        <strong>INKOOPNOTA VEE</strong><br>
+                        Uigereikt door afnemer.
+                    {% else %}
+                        <strong>VERKOOPNOTA</strong><br>
+                    {% endif %}
                 </p>
                 <p>
                     {{ invoice.getCustomer.getCompanyName() }}<br>
                     {{ invoice.getCustomer.getStreet() }} {{ invoice.getCustomer.getHouseNumber() }}<br>
                     {{ invoice.getCustomer.getPostalCode() }}<br>
+                    {% if (invoice.getCustomer.getEmail() is not empty) %} {{ invoice.getCustomer.getEmail() }}<br> {% endif %}
                 </p>
             </div>
         </div>
@@ -239,7 +245,7 @@
                     <br>
                     {% if (invoice.getUbnNumber() is not null) %} Slachthuis UBN: {{ invoice.getUbnNumber() }} {% endif %}
                 </p>
-                <p>
+                <p class="text-right">
                     € {{ invoice.getTotalPriceExclBtw()|number_format(2, ",", ".") }}<br>
                     € {{ invoice.getBtwPrice()|number_format(2, ",", ".") }}<br>
                 </p>
