@@ -62,6 +62,11 @@ class InvoiceRow
      */
     private $invoice;
 
+    /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $delivery_date;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -171,6 +176,18 @@ class InvoiceRow
     public function setInvoice(?Invoice $invoice): self
     {
         $this->invoice = $invoice;
+
+        return $this;
+    }
+
+    public function getDeliveryDate(): ?\DateTimeInterface
+    {
+        return $this->delivery_date;
+    }
+
+    public function setDeliveryDate(?\DateTimeInterface $delivery_date): self
+    {
+        $this->delivery_date = $delivery_date;
 
         return $this;
     }

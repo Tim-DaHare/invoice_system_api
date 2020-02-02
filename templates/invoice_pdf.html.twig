@@ -146,52 +146,68 @@
                 <p style="width: 250px;">
                     Nota: <br>
                     Nota datum: <br>
-                    BTW-nummer leverancier: <br>
+                    {% if (invoice.getInvoiceType() == 0) %}BTW-nummer leverancier: {% endif %} <br>
+                    {% if (invoice.getInvoiceType() == 1) %} Betreft: {{ invoice.getRegarding() }} {% endif %} <br>
                 </p>
                 <p>
                     {{ invoice.getInvoiceNumber() }}<br>
                     {{ invoice.getCreatedAt().format("d-m-Y") }}<br>
-                    {{ invoice.GetCustomer().getBtwNumber() }}<br>
+                    {% if (invoice.getInvoiceType() == 0) %} {{ invoice.GetCustomer().getBtwNumber() }} {% endif %} <br>
                 </p>
             </div>
-            <div class="row align-end">
-                <p style="width: 250px;">Leverdatum:</p>
-                <p style="margin-right: 100px;">{{ invoice.getDeliveryDate().format("d-m-Y") }}</p>
-            </div>
+            {% if (invoice.getInvoiceType() == 0) %}
+                <div class="row align-end">
+                    <p style="width: 250px;">Leverdatum:</p>
+                    <p style="margin-right: 100px;">{{ invoice.getDeliveryDate().format("d-m-Y") }}</p>
+                </div>
+            {% endif %}
         <div class="invoice-rows">
             <table className="invoice-rows-builder__table">
                 <thead>
                     <tr>
-                        {% if (invoice.getFlavour() != 1) %}
-                        <th>
-                            Omschrijving
-                        </th>
-                        {% endif %}
-                        {% if (invoice.getFlavour() == 1) %}
+                        {% if (invoice.getInvoiceType()) == 0 %}
+                            {% if (invoice.getFlavour() != 1) %}
                             <th>
-                                I & R Oormerk
+                                Omschrijving
                             </th>
-                            <th class="text-center">
-                                Gewicht in kg 
+                            {% endif %}
+                            {% if (invoice.getFlavour() == 1) %}
+                                <th>
+                                    I &and; R Oormerk
+                                </th>
+                                <th class="text-center">
+                                    Gewicht in kg 
+                                </th>
+                                <th class="text-right">
+                                    Prijs per kg.
+                                </th>
+                                <th class="text-right">
+                                    Kosten
+                                </th>
+                            {% endif %}
+                            {% if (invoice.getFlavour() == 0 or invoice.getFlavour() == 2) %}
+                            <th>
+                                Aantal
                             </th>
-                            <th class="text-right">
-                                Prijs per kg.
+                            {% endif %}
+                        
+                            {% if (invoice.getFlavour() == 0) %}
+                            <th>
+                                Werknummer
                             </th>
-                            <th class="text-right">
-                                Kosten
+                            {% endif %}
+                        {% else %}
+                            <th>
+                                Omschrijving
+                            </th>
+                            <th>
+                                Aantal
+                            </th>
+                            <th>
+                                Leverdatum
                             </th>
                         {% endif %}
-                        {% if (invoice.getFlavour() == 0 or invoice.getFlavour() == 2) %}
-                        <th>
-                            Aantal
-                        </th>
-                        {% endif %}
-                    
-                        {% if(invoice.getFlavour() == 0) %}
-                        <th>
-                            Werknummer
-                        </th>
-                        {% endif %}
+                        
                         <th class="text-right">
                             Bedrag
                         </th>
@@ -200,33 +216,45 @@
                 <tbody>
                     {% for invoiceRow in invoice.getInvoiceRows() %}
                         <tr className="invoice-listitem--table-row" key={i}>
-                            {% if (invoice.getFlavour() != 1) %}
-                                <td>
+                            {% if (invoice.getInvoiceType()) == 0 %}
+                                {% if (invoice.getFlavour() != 1) %}
+                                    <td>
+                                        {{ invoiceRow.getDescription() }}
+                                    </td>
+                                {% endif %}
+                                {% if (invoice.getFlavour() == 1) %}
+                                    <td>
+                                        {{ invoiceRow.getEarbrand() }}
+                                    </td>
+                                    <td class="text-center">
+                                        {{ invoiceRow.getWeightKg()|number_format(2, ",", ".") }}
+                                    </td>
+                                    <td class="text-right">
+                                        &euro; {{ invoiceRow.getPriceKg()|number_format(2, ",", ".") }}
+                                    </td>
+                                    <td class="text-right">
+                                        &euro; {{ invoiceRow.getCosts()|number_format(2, ",", ".") }}
+                                    </td>
+                                {% endif %}
+                                {% if (invoice.getFlavour() == 0 or invoice.getFlavour() == 2) %}
+                                    <td>
+                                        {{ invoiceRow.getAmount() }}
+                                    </td>
+                                {% endif %}
+                                {% if (invoice.getFlavour() == 0) %}
+                                    <td>
+                                        {{ invoiceRow.getWorkNumber() }}
+                                    </td>
+                                {% endif %}
+                            {% else %}
+    	                        <td>
                                     {{ invoiceRow.getDescription() }}
                                 </td>
-                            {% endif %}
-                            {% if (invoice.getFlavour() == 1) %}
-                                <td>
-                                    {{ invoiceRow.getEarbrand() }}
-                                </td>
-                                <td class="text-center">
-                                    {{ invoiceRow.getWeightKg()|number_format(2, ",", ".") }}
-                                </td>
-                                <td class="text-right">
-                                    &euro; {{ invoiceRow.getPriceKg()|number_format(2, ",", ".") }}
-                                </td>
-                                <td class="text-right">
-                                    &euro; {{ invoiceRow.getCosts()|number_format(2, ",", ".") }}
-                                </td>
-                            {% endif %}
-                            {% if (invoice.getFlavour() == 0 or invoice.getFlavour() == 2) %}
                                 <td>
                                     {{ invoiceRow.getAmount() }}
                                 </td>
-                            {% endif %}
-                            {% if (invoice.getFlavour() == 0) %}
                                 <td>
-                                    {{ invoiceRow.getWorkNumber() }}
+                                    {{ invoiceRow.getDeliveryDate().format("d-m-Y") }}
                                 </td>
                             {% endif %}
                             <td class="text-right">

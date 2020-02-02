@@ -59,37 +59,16 @@ class CustomerController extends AbstractController
 
         $body = json_decode($request->getContent(), true);
 
-        $customer = $customerRepo->find($body["customer_id"]);
-        if (!$customer) {
-            $this->createNotFoundException("No customer found with that id");
-        }
+        $customer = new Customer();
+        $customer->setCompanyName($body['company_name']);
+        $customer->setStreet($body['street']);
+        $customer->setHouseNumber($body['house_number']);
+        $customer->setPostalCode($body['postal_code']);
+        $customer->setCity($body['city']);
+        $customer->setBtwNumber($body['btw_number']);
+        $customer->setEmail($body['email']);
 
-        $invoice = new Invoice();
-        $invoice->setInvoiceNumber($body["invoice_number"]);
-        $invoice->setCustomer($customer);
-        $invoice->setInvoiceType($body["invoice_type"]);
-        $invoice->setDeliveryDate(new \DateTime($body["delivery_date"]));
-        $invoice->setBtwPercentage($body["btw_percentage"]);
-        $invoice->setUbnNumber($body["ubn_number"] ?? null);
-        $invoice->setFlavour($body["invoice_flavour"]);
-
-        foreach($body["invoice_rows"] as $row) {
-            $invoiceRow = new InvoiceRow;
-            $invoiceRow->setDescription($row["description"] ?? null);
-            $invoiceRow->setAmount($row["amount"] ?? null);
-            $invoiceRow->setWorkNumber($row["work_number"] ?? null);
-            $invoiceRow->setPrice($row["price"]);
-            $invoiceRow->setEarbrand($row["earbrand"] ?? null);
-            $invoiceRow->setWeightKg($row["weight_kg"] ?? null);
-            $invoiceRow->setPriceKg($row["price_kg"] ?? null);
-            $invoiceRow->setCosts($row["costs"] ?? null);
-
-            $entityManager->persist($invoiceRow);
-
-            $invoice->addInvoiceRow($invoiceRow);
-        }
-
-        $entityManager->persist($invoice);
+        $entityManager->persist($customer);
 
         $entityManager->flush();
 
@@ -102,21 +81,22 @@ class CustomerController extends AbstractController
     /**
      * @Route("/{id}/edit", name="invoice_edit", methods={"GET","POST"})
      */
-    public function edit(Request $request, Invoice $invoice): Response
+    public function edit(Request $request, Customer $customer): Response
     {
-        // $form = $this->createForm(InvoiceType::class, $invoice);
-        // $form->handleRequest($request);
+        $entityManager = $this->getDoctrine()->getManager();
+        $customerRepo = $entityManager->getRepository(Customer::class);
 
-        // if ($form->isSubmitted() && $form->isValid()) {
-        //     $this->getDoctrine()->getManager()->flush();
+        $customer->setCompanyName($body['company_name']);
+        $customer->setStreet($body['street']);
+        $customer->setHouseNumber($body['house_number']);
+        $customer->setPostalCode($body['postal_code']);
+        $customer->setCity($body['city']);
+        $customer->setBtwNumber($body['btw_number']);
+        $customer->setEmail($body['email']);
 
-        //     return $this->redirectToRoute('invoice_index');
-        // }
+        $entityManager->flush();
 
-        // return $this->render('invoice/edit.html.twig', [
-        //     'invoice' => $invoice,
-        //     'form' => $form->createView(),
-        // ]);
+        return $this->json(["status" => "success"]);
     }
 
     /**

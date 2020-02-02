@@ -46,6 +46,7 @@ class InvoiceController extends AbstractController
             $invoiceArray["ubn_number"] = $invoice->getUbnNumber();
             $invoiceArray["customer_id"] = $invoice->getCustomer()->getId();
             $invoiceArray["invoice_flavour"] = $invoice->getFlavour();
+            $invoiceArray["regarding"] = $invoice->getRegarding();
             $invoiceArray["invoice_rows"] = [];
 
             foreach($invoice->getInvoiceRows() as $invoiceRow) {
@@ -59,6 +60,7 @@ class InvoiceController extends AbstractController
                 $invoiceRowArray["weight_kg"] = $invoiceRow->getWeightKg();
                 $invoiceRowArray["price_kg"] = $invoiceRow->getPriceKg();
                 $invoiceRowArray["costs"] = $invoiceRow->getCosts();
+                $invoiceRowArray["delivery_date"] = $invoiceRow->getDeliveryDate();
 
                 $invoiceArray["invoice_rows"][] = $invoiceRowArray;
             }
@@ -84,7 +86,7 @@ class InvoiceController extends AbstractController
             $this->createNotFoundException("No customer found with that id");
         }
 
-        $invoice = new Invoice();
+        $invoice = new Invoice;
         $invoice->setInvoiceNumber($body["invoice_number"]);
         $invoice->setCustomer($customer);
         $invoice->setInvoiceType($body["invoice_type"]);
@@ -92,6 +94,7 @@ class InvoiceController extends AbstractController
         $invoice->setBtwPercentage($body["btw_percentage"]);
         $invoice->setUbnNumber($body["ubn_number"] ?? null);
         $invoice->setFlavour($body["invoice_flavour"]);
+        $invoice->setRegarding($body["regarding"] ?? null);
 
         foreach($body["invoice_rows"] as $row) {
             $invoiceRow = new InvoiceRow;
@@ -103,6 +106,7 @@ class InvoiceController extends AbstractController
             $invoiceRow->setWeightKg($row["weight_kg"] ?? null);
             $invoiceRow->setPriceKg($row["price_kg"] ?? null);
             $invoiceRow->setCosts($row["costs"] ?? null);
+            $invoiceRow->setDeliveryDate(new \DateTime($row["delivery_date"]) ?? null);
 
             $entityManager->persist($invoiceRow);
 
@@ -162,6 +166,7 @@ class InvoiceController extends AbstractController
         $tempPdfDir = $projectDir."/var/temp/pdf";
 
         $html = $this->renderView("invoice_pdf.html.twig", compact("invoice"));
+        // return $this->render("invoice_pdf.html.twig", compact("invoice"));
 
         $compressedHtml = gzdeflate($html, 9);
         $encodedHtml = base64_encode($compressedHtml);
