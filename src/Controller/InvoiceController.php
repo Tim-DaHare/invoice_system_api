@@ -189,7 +189,7 @@ class InvoiceController extends AbstractController
 
         $filename = $output[0];
         $filePath = $tempPdfDir."/".$filename;
-        $pdfContent = \file_get_contents($tempPdfDir."/".$filename);
+        $pdfContent = file_get_contents($tempPdfDir."/".$filename);
         // Todo: Delete the temporary pdf file
 
         $response = new Response($pdfContent);
