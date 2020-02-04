@@ -50,7 +50,7 @@ class CustomerController extends AbstractController
     }
 
     /**
-     * @Route("/new", name="invoice_new", methods={"POST"})
+     * @Route("/new", name="customer_new", methods={"POST"})
      */
     public function new(Request $request, SerializerInterface $serializer): Response
     {
@@ -61,12 +61,12 @@ class CustomerController extends AbstractController
 
         $customer = new Customer();
         $customer->setCompanyName($body['company_name']);
-        $customer->setStreet($body['street']);
-        $customer->setHouseNumber($body['house_number']);
-        $customer->setPostalCode($body['postal_code']);
-        $customer->setCity($body['city']);
-        $customer->setBtwNumber($body['btw_number']);
-        $customer->setEmail($body['email']);
+        $customer->setStreet($body['street'] ?? "");
+        $customer->setHouseNumber($body['house_number'] ?? "");
+        $customer->setPostalCode($body['postal_code'] ?? "");
+        $customer->setCity($body['city'] ?? "");
+        $customer->setBtwNumber($body['btw_number'] ?? "");
+        $customer->setEmail($body['email'] ?? "");
 
         $entityManager->persist($customer);
 
@@ -79,20 +79,22 @@ class CustomerController extends AbstractController
     }
 
     /**
-     * @Route("/{id}/edit", name="invoice_edit", methods={"GET","POST"})
+     * @Route("/{id}/edit", name="customer_edit", methods={"POST"})
      */
     public function edit(Request $request, Customer $customer): Response
     {
         $entityManager = $this->getDoctrine()->getManager();
         $customerRepo = $entityManager->getRepository(Customer::class);
 
+        $body = json_decode($request->getContent(), true);
+
         $customer->setCompanyName($body['company_name']);
-        $customer->setStreet($body['street']);
-        $customer->setHouseNumber($body['house_number']);
-        $customer->setPostalCode($body['postal_code']);
-        $customer->setCity($body['city']);
-        $customer->setBtwNumber($body['btw_number']);
-        $customer->setEmail($body['email']);
+        $customer->setStreet($body['street']  ?? "");
+        $customer->setHouseNumber($body['house_number'] ?? "");
+        $customer->setPostalCode($body['postal_code'] ?? "");
+        $customer->setCity($body['city'] ?? "");
+        $customer->setBtwNumber($body['btw_number'] ?? "");
+        $customer->setEmail($body['email'] ?? "");
 
         $entityManager->flush();
 
